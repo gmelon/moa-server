@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MoaPasswordEncoder implements PasswordEncoder {
 
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public String encode(final CharSequence rawPassword) {
