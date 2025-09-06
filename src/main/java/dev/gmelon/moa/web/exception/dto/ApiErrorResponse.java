@@ -26,7 +26,7 @@ public class ApiErrorResponse {
             .build();
     }
 
-    public static ApiErrorResponse of(int status, int code, String message) {
+    public static ApiErrorResponse of(int status, Integer code, String message) {
         return ApiErrorResponse.builder()
             .status(status)
             .code(code)

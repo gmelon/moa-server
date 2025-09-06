@@ -24,25 +24,31 @@ public class MoaExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
-        final Exception exception,
-        final Object body,
-        final HttpHeaders headers,
-        final HttpStatusCode statusCode,
-        final WebRequest request
+            final Exception exception,
+            final Object body,
+            final HttpHeaders headers,
+            final HttpStatusCode statusCode,
+            final WebRequest request
     ) {
         if (statusCode.is4xxClientError()) {
             if (exception instanceof MoaException moaException) {
-                return ResponseEntity.status(statusCode)
-                    .body(ApiErrorResponse.of(statusCode.value(), moaException.getCode(), moaException.getLocalizedMessage()));
+                return ResponseEntity
+                        .status(statusCode)
+                        .body(ApiErrorResponse.of(
+                                statusCode.value(),
+                                moaException.getCode(),
+                                messageSource.getMessage(moaException.getReason(), null, getLocale())
+                        ));
             }
-            return ResponseEntity.status(statusCode).body(ApiErrorResponse.of(statusCode.value(), exception.getLocalizedMessage()));
+            return ResponseEntity.status(statusCode)
+                    .body(ApiErrorResponse.of(statusCode.value(), exception.getLocalizedMessage()));
         }
 
         log.error("Unexpected error occurred: {}", exception.getClass().getSimpleName(), exception);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiErrorResponse.of(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            messageSource.getMessage("error.web.internalServerError", null, getLocale())
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                messageSource.getMessage("error.web.internalServerError", null, getLocale())
         ));
     }
 
