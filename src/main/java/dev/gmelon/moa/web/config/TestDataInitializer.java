@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Profile("!prod")
 @RequiredArgsConstructor
@@ -15,6 +16,8 @@ import org.springframework.context.annotation.Profile;
 public class TestDataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(final String... args) throws Exception {
@@ -24,7 +27,7 @@ public class TestDataInitializer implements CommandLineRunner {
     private User createTestAdminUser() {
         return User.builder()
             .email("hello@gmelon.dev")
-            .password("password")
+            .password(passwordEncoder.encode("password"))
             .name("gmelon")
             .role(UserRole.ADMIN)
             .joinType(UserJoinType.EMAIL)
