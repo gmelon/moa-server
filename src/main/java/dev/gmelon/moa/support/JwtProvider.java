@@ -45,9 +45,9 @@ public class JwtProvider {
     public String createTokenWithSubject(final Long userId) {
         try {
             return JWT.create()
-                .withSubject(String.valueOf(userId))
-                .withExpiresAt(getExpiresAt())
-                .sign(algorithm);
+                    .withSubject(String.valueOf(userId))
+                    .withExpiresAt(getExpiresAt())
+                    .sign(algorithm);
         } catch (JWTCreationException exception) {
             log.error("Error creating JWT.", exception);
             throw exception;
@@ -56,9 +56,9 @@ public class JwtProvider {
 
     private Instant getExpiresAt() {
         return LocalDateTime.now(clock)
-            .plusMinutes(expirationMinutes)
-            .atZone(clock.getZone())
-            .toInstant();
+                .plusMinutes(expirationMinutes)
+                .atZone(clock.getZone())
+                .toInstant();
     }
 
     public Long verifyTokenAndGetSubject(final String token) {
@@ -67,8 +67,9 @@ public class JwtProvider {
             DecodedJWT decodedJWT = verifier.verify(token);
             return Long.parseLong(decodedJWT.getSubject());
         } catch (JWTVerificationException exception) {
+            log.warn("Invalid JWT: {}", exception.getMessage());
             throw new NoPermissionException(
-                messageSource.getMessage("error.jwt.invalidToken", null, getLocale()));
+                    messageSource.getMessage("error.jwt.invalidToken", null, getLocale()));
         }
     }
 

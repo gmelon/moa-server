@@ -8,6 +8,9 @@ spring:
     console:
       enabled: true
   jpa:
+    properties.hibernate:
+      globally_quoted_identifiers: true
+      globally_quoted_identifiers_skip_column_definitions: true
     hibernate:
       ddl-auto: create
     database: h2
