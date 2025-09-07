@@ -3,3 +3,10 @@ spring:
     properties.hibernate:
       globally_quoted_identifiers: true
       globally_quoted_identifiers_skip_column_definitions: true
+
+auth:
+  social:
+    apple:
+      base_url: https://appleid.apple.com/auth
+    kakao:
+      base_url: https://kapi.kakao.com
