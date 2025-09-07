@@ -30,22 +30,35 @@ public class MoaExceptionHandler extends ResponseEntityExceptionHandler {
             final HttpStatusCode statusCode,
             final WebRequest request
     ) {
+        if (exception instanceof MoaException moaException) {
+            return handleMoaException(moaException, statusCode);
+        }
+        
         if (statusCode.is4xxClientError()) {
-            if (exception instanceof MoaException moaException) {
-                return ResponseEntity
-                        .status(statusCode)
-                        .body(ApiErrorResponse.of(
-                                statusCode.value(),
-                                moaException.getCode(),
-                                messageSource.getMessage(moaException.getReason(), null, getLocale())
-                        ));
-            }
             return ResponseEntity.status(statusCode)
                     .body(ApiErrorResponse.of(statusCode.value(), exception.getLocalizedMessage()));
         }
 
-        log.error("Unexpected error occurred: {}", exception.getClass().getSimpleName(), exception);
+        return handleServerError(exception);
+    }
 
+    private ResponseEntity<Object> handleMoaException(MoaException exception, HttpStatusCode statusCode) {
+        if (statusCode.is4xxClientError()) {
+            return ResponseEntity
+                    .status(statusCode)
+                    .body(ApiErrorResponse.of(
+                            statusCode.value(),
+                            exception.getCode(),
+                            messageSource.getMessage(exception.getReason(), null, getLocale())
+                    ));
+        }
+        
+        return handleServerError(exception);
+    }
+
+    private ResponseEntity<Object> handleServerError(Exception exception) {
+        log.error("Server error occurred: {}", exception.getClass().getSimpleName(), exception);
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 messageSource.getMessage("error.web.internalServerError", null, getLocale())
