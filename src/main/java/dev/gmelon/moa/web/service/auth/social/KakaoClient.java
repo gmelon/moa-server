@@ -2,7 +2,7 @@ package dev.gmelon.moa.web.service.auth.social;
 
 import dev.gmelon.moa.storage.user.UserJoinType;
 import dev.gmelon.moa.web.exception.BadRequestException;
-import dev.gmelon.moa.web.service.auth.social.dto.SocialAccountResponse;
+import dev.gmelon.moa.web.service.auth.social.dto.SocialLoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +28,7 @@ public class KakaoClient implements SocialClient {
     }
 
     @Override
-    public SocialAccountResponse requestAccountResponse(String token) {
+    public SocialLoginResponse requestAccountResponse(String token) {
         String response = webClient.post()
                 .uri(baseUrl + "/v2/user/me")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -41,7 +41,7 @@ public class KakaoClient implements SocialClient {
             JSONObject jsonObject = new JSONObject(response);
             JSONObject kakaoAccount = jsonObject.getJSONObject("kakao_account");
             String email = kakaoAccount.getString("email");
-            return SocialAccountResponse.builder()
+            return SocialLoginResponse.builder()
                     .email(email)
                     .name(email)
                     .build();

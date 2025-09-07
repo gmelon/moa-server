@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SocialAccountResponse {
+public class SocialLoginResponse {
 
     private String email;
 

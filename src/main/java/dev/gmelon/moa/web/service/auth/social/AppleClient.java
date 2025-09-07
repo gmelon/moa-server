@@ -7,7 +7,7 @@ import dev.gmelon.moa.web.exception.BadRequestException;
 import dev.gmelon.moa.web.exception.InternalServerException;
 import dev.gmelon.moa.web.service.auth.social.dto.ApplePublicKeyResponse;
 import dev.gmelon.moa.web.service.auth.social.dto.ApplePublicKeyResponse.Key;
-import dev.gmelon.moa.web.service.auth.social.dto.SocialAccountResponse;
+import dev.gmelon.moa.web.service.auth.social.dto.SocialLoginResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -75,7 +75,7 @@ public class AppleClient implements SocialClient {
     }
 
     @Override
-    public SocialAccountResponse requestAccountResponse(String token) {
+    public SocialLoginResponse requestAccountResponse(String token) {
         String idToken = request(token, "id_token");
         try {
             String idHeaderToken = idToken.split("\\.")[0];
@@ -88,7 +88,7 @@ public class AppleClient implements SocialClient {
                     .parseSignedClaims(idToken)
                     .getPayload();
             String email = payload.get("email", String.class);
-            return SocialAccountResponse.builder()
+            return SocialLoginResponse.builder()
                     .email(email)
                     .name(email)
                     .build();

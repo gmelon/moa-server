@@ -34,4 +34,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserJoinType joinType;
 
+    public static User newSocialMember(String email, String name, UserJoinType joinType) {
+        return User.builder()
+                .email(email)
+                .name(name)
+                .role(UserRole.MEMBER)
+                .joinType(joinType)
+                .build();
+    }
+
 }

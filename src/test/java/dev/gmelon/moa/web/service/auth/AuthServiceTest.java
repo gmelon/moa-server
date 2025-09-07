@@ -4,13 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import dev.gmelon.moa.storage.user.User;
+import dev.gmelon.moa.storage.user.UserJoinType;
 import dev.gmelon.moa.storage.user.UserRepository;
 import dev.gmelon.moa.support.JwtProvider;
 import dev.gmelon.moa.support.MoaPasswordEncoder;
+import dev.gmelon.moa.web.exception.BadRequestException;
 import dev.gmelon.moa.web.service.auth.dto.LoginRequest;
 import dev.gmelon.moa.web.service.auth.dto.LoginResponse;
+import dev.gmelon.moa.web.service.auth.dto.SocialLoginRequest;
+import dev.gmelon.moa.web.service.auth.social.SocialClients;
+import dev.gmelon.moa.web.service.auth.social.dto.SocialLoginResponse;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +38,9 @@ class AuthServiceTest {
 
     @Mock
     private JwtProvider jwtProvider;
+
+    @Mock
+    private SocialClients socialClients;
 
     @Test
     void login_whenEmailNotExists() {
@@ -84,6 +93,78 @@ class AuthServiceTest {
 
         // when
         LoginResponse actual = authService.login(request);
+
+        // then
+        LoginResponse expected = LoginResponse.builder()
+                .token("jwtToken")
+                .build();
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void socialLogin_whenSocialLoginFailed() {
+        // given
+        given(socialClients.requestAccountResponse(any(), any()))
+                .willThrow(new BadRequestException("error.social.invalidToken"));
+        SocialLoginRequest loginRequest = SocialLoginRequest.builder()
+                .joinType(UserJoinType.APPLE)
+                .token("invalidToken")
+                .build();
+
+        // when, then
+        assertThatThrownBy(() -> authService.socialLogin(loginRequest))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("error.social.invalidToken");
+    }
+
+    @Test
+    void socialLogin_whenUserNotExists() {
+        // given
+        SocialLoginRequest loginRequest = SocialLoginRequest.builder()
+                .joinType(UserJoinType.APPLE)
+                .token("validToken")
+                .build();
+        given(socialClients.requestAccountResponse(any(), any()))
+                .willReturn(SocialLoginResponse.builder()
+                        .email("user@user.com")
+                        .name("user")
+                        .build());
+        given(userRepository.findByEmail(any())).willReturn(Optional.empty());
+        given(userRepository.save(any())).willAnswer(invocation -> invocation.getArgument(0));
+        given(jwtProvider.createTokenWithSubject(any())).willReturn("jwtToken");
+
+        // when
+        LoginResponse actual = authService.socialLogin(loginRequest);
+
+        // then
+        then(userRepository).should().save(any(User.class));
+        LoginResponse expected = LoginResponse.builder()
+                .token("jwtToken")
+                .build();
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void socialLogin_whenUserExists() {
+        // given
+        SocialLoginRequest loginRequest = SocialLoginRequest.builder()
+                .joinType(UserJoinType.APPLE)
+                .token("validToken")
+                .build();
+        given(socialClients.requestAccountResponse(any(), any()))
+                .willReturn(SocialLoginResponse.builder()
+                        .email("user@user.com")
+                        .name("user")
+                        .build());
+        given(userRepository.findByEmail(any()))
+                .willReturn(Optional.of(User.builder()
+                        .email("user@user.com")
+                        .name("user")
+                        .build()));
+        given(jwtProvider.createTokenWithSubject(any())).willReturn("jwtToken");
+
+        // when
+        LoginResponse actual = authService.socialLogin(loginRequest);
 
         // then
         LoginResponse expected = LoginResponse.builder()
